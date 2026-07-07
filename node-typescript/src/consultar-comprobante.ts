@@ -1,11 +1,25 @@
 import { apiRequest } from "./config.js";
 
-async function main(): Promise<void> {
-    const comprobanteId = process.env.COMPROBANTE_ID;
+function obtenerComprobanteId(): string {
+    const comprobanteId = process.argv[2];
 
     if (!comprobanteId) {
-        throw new Error("Falta COMPROBANTE_ID en el archivo .env.");
+        throw new Error(
+            "Uso: npm run consultar -- ID_COMPROBANTE"
+        );
     }
+
+    if (!/^\d+$/.test(comprobanteId)) {
+        throw new Error(
+            "El ID del comprobante debe ser un número entero."
+        );
+    }
+
+    return comprobanteId;
+}
+
+async function main(): Promise<void> {
+    const comprobanteId = obtenerComprobanteId();
 
     const response = await apiRequest(
         `/api/comprobantes/${encodeURIComponent(comprobanteId)}`

@@ -5,32 +5,41 @@ Ejemplo oficial para consumir la API REST de facturación electrónica ARCA de S
 ## Requisitos
 
 - Node.js 18 o superior
-- Token de pruebas o producción
+- Token de pruebas o producción de Sistemas 360
 
 ## Instalación
+
+Entrá a la carpeta:
+
+```bash
+cd node-typescript
+```
+
+Instalá las dependencias:
 
 ```bash
 npm install
 ```
 
-Copiar las variables:
+Copiá el archivo de variables:
+
+Linux o macOS:
 
 ```bash
 cp .env.example .env
 ```
 
-En Windows PowerShell:
+Windows PowerShell:
 
 ```powershell
 Copy-Item .env.example .env
 ```
 
-Configurar `.env`:
+Configurá el archivo `.env`:
 
 ```env
 SISTEMAS360_BASE_URL=https://api.sistemas360.ar
 SISTEMAS360_TOKEN=TU_TOKEN
-COMPROBANTE_ID=59
 ```
 
 ## Validar conexión
@@ -39,27 +48,50 @@ COMPROBANTE_ID=59
 npm run ping
 ```
 
-## Crear Factura B
+## Crear una Factura B
 
 ```bash
 npm run crear-factura
 ```
 
-## Consultar comprobante
+El ejemplo genera automáticamente:
+
+- La fecha actual.
+- Una `referencia_externa` única.
+- Una Factura B de prueba.
+
+## Consultar un comprobante
+
+Pasá el ID como argumento:
 
 ```bash
-npm run consultar
+npm run consultar -- 59
 ```
 
-## Descargar PDF A4
+Reemplazá `59` por el ID real del comprobante.
+
+## Descargar el PDF A4
 
 ```bash
-npm run descargar-pdf
+npm run descargar-pdf -- 59
+```
+
+El archivo se guardará como:
+
+```
+comprobante-59.pdf
 ```
 
 ## Seguridad
 
-No expongas el token en frontend, aplicaciones móviles ni repositorios públicos.
+No expongas el token en:
+
+- Código frontend.
+- Aplicaciones móviles.
+- Repositorios públicos.
+- JavaScript ejecutado en el navegador.
+
+Las solicitudes deben realizarse desde un backend seguro.
 
 ## Documentación oficial
 

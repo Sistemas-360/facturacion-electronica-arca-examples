@@ -1,12 +1,26 @@
 import { writeFile } from "node:fs/promises";
 import { config } from "./config.js";
 
-async function main(): Promise<void> {
-    const comprobanteId = process.env.COMPROBANTE_ID;
+function obtenerComprobanteId(): string {
+    const comprobanteId = process.argv[2];
 
     if (!comprobanteId) {
-        throw new Error("Falta COMPROBANTE_ID en el archivo .env.");
+        throw new Error(
+            "Uso: npm run descargar-pdf -- ID_COMPROBANTE"
+        );
     }
+
+    if (!/^\d+$/.test(comprobanteId)) {
+        throw new Error(
+            "El ID del comprobante debe ser un número entero."
+        );
+    }
+
+    return comprobanteId;
+}
+
+async function main(): Promise<void> {
+    const comprobanteId = obtenerComprobanteId();
 
     const response = await fetch(
         `${config.baseUrl}/api/comprobantes/${encodeURIComponent(
@@ -21,7 +35,10 @@ async function main(): Promise<void> {
     );
 
     if (!response.ok) {
-        const body = await response.text();
+        const contentType = response.headers.get("content-type") ?? "";
+        const body = contentType.includes("application/json")
+            ? JSON.stringify(await response.json())
+            : await response.text();
 
         throw new Error(
             `Error ${response.status} ${response.statusText}: ${body}`
