@@ -17,6 +17,12 @@ __pycache__/
 .venv/
 venv/
 
+# Java
+target/
+*.class
+*.jar
+*.war
+
 # PDFs descargados
 *.pdf
 

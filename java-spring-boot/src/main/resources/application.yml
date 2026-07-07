@@ -1,0 +1,9 @@
+sistemas360:
+  base-url: ${SISTEMAS360_BASE_URL:https://api.sistemas360.ar}
+  token: ${SISTEMAS360_TOKEN:}
+  action: ${SISTEMAS360_ACTION:ping}
+  comprobante-id: ${SISTEMAS360_COMPROBANTE_ID:}
+
+spring:
+  main:
+    web-application-type: none
