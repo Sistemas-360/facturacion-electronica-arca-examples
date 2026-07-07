@@ -1,179 +1,177 @@
 # Facturación electrónica ARCA con C# y .NET
 
-Ejemplo oficial para consumir la API REST de facturación electrónica ARCA en Argentina desde C# y .NET.
+Ejemplos oficiales para integrar la API REST de facturación electrónica ARCA en Argentina desde C# y .NET.
 
-El proyecto permite validar la conexión, crear una Factura B, consultar un comprobante y descargar el PDF A4.
+## Ejemplos disponibles
+
+| Proyecto | Uso |
+|---|---|
+| `console/` | Prueba rápida desde terminal |
+| `aspnet-core/` | Integración empresarial mediante API web |
 
 ## Requisitos
 
 - .NET 10 SDK o superior compatible
 - Token de pruebas o producción de Sistemas 360
 
-## Tecnologías utilizadas
+No se utilizan paquetes externos en ninguno de los dos proyectos.
 
-- C#
-- .NET 10
-- HttpClient
-- System.Text.Json
-- API REST
-- JSON
-- Bearer Token
+## Estructura
 
-No se utilizan paquetes externos.
-
-## Instalación
-
-Entrá a la carpeta:
-
-```bash
-cd dotnet
+```text
+dotnet/
+├── README.md
+├── console/
+│   ├── Sistemas360Example.Console.csproj
+│   ├── Program.cs
+│   ├── Client/
+│   │   └── Sistemas360Client.cs
+│   └── Models/
+│       ├── ClienteRequest.cs
+│       ├── ItemRequest.cs
+│       └── CrearComprobanteRequest.cs
+└── aspnet-core/
+    ├── Sistemas360Example.Api.csproj
+    ├── Program.cs
+    ├── appsettings.json
+    ├── appsettings.Development.json
+    ├── Controllers/
+    │   └── ComprobantesController.cs
+    ├── Services/
+    │   ├── ISistemas360Service.cs
+    │   └── Sistemas360Service.cs
+    ├── Client/
+    │   └── Sistemas360Client.cs
+    ├── Configuration/
+    │   └── Sistemas360Options.cs
+    └── Models/
+        ├── ClienteRequest.cs
+        ├── ItemRequest.cs
+        ├── CrearComprobanteRequest.cs
+        └── CrearFacturaDemoRequest.cs
 ```
 
-Restaurá y compilá el proyecto:
+## Consola
 
-```bash
-dotnet restore
-dotnet build
-```
+Objetivo: probar la API rápidamente desde la terminal, sin infraestructura adicional.
 
-## Configuración
+### Configuración
 
-El ejemplo usa variables de entorno.
-
-### Linux o macOS
+Linux o macOS:
 
 ```bash
 export SISTEMAS360_BASE_URL="https://api.sistemas360.ar"
 export SISTEMAS360_TOKEN="TU_TOKEN"
 ```
 
-### Windows PowerShell
+Windows PowerShell:
 
 ```powershell
 $env:SISTEMAS360_BASE_URL="https://api.sistemas360.ar"
 $env:SISTEMAS360_TOKEN="TU_TOKEN"
 ```
 
-El token no debe escribirse directamente en el código ni subirse al repositorio.
-
-## Validar la conexión
+### Comandos
 
 ```bash
-dotnet run -- ping
+dotnet run --project console -- ping
+dotnet run --project console -- crear
+dotnet run --project console -- consultar 151
+dotnet run --project console -- descargar-pdf 151
 ```
 
-El comando realiza:
+Reemplazá `151` por el ID real del comprobante. El PDF se guarda en la carpeta actual como `comprobante-151.pdf`.
 
-```text
-GET /api/ping
-```
+## ASP.NET Core
 
-## Crear una Factura B
+Objetivo: mostrar cómo integrar la API dentro de un backend empresarial (ERP, SaaS, microservicios, sistemas administrativos, workers, backends empresariales), exponiendo la funcionalidad como una API web propia.
+
+### Configurar token
+
+Linux o macOS:
 
 ```bash
-dotnet run -- crear
+export Sistemas360__Token="TU_TOKEN"
 ```
 
-El ejemplo genera automáticamente:
+Windows PowerShell:
 
-- La fecha actual.
-- Una `referencia_externa` única.
-- Un cliente de prueba.
-- Un ítem gravado.
-- IVA del 21%.
-- Total de $12.100.
-- Moneda PES.
-
-La solicitud se envía a:
-
-```text
-POST /api/comprobantes
+```powershell
+$env:Sistemas360__Token="TU_TOKEN"
 ```
 
-## Consultar un comprobante
+Opcionalmente, podés sobreescribir la URL base:
 
-Pasá el ID devuelto por la creación:
+Linux o macOS:
 
 ```bash
-dotnet run -- consultar 151
+export Sistemas360__BaseUrl="https://api.sistemas360.ar"
 ```
 
-Reemplazá `151` por el ID real del comprobante.
+Windows PowerShell:
 
-El comando realiza:
-
-```text
-GET /api/comprobantes/151
+```powershell
+$env:Sistemas360__BaseUrl="https://api.sistemas360.ar"
 ```
 
-## Descargar el PDF A4
+### Ejecutar
 
 ```bash
-dotnet run -- descargar-pdf 151
+dotnet run --project aspnet-core
 ```
 
-El archivo se guardará en la carpeta actual:
+### Endpoints locales
 
 ```text
-comprobante-151.pdf
+GET  /api/sistemas360/ping
+POST /api/sistemas360/facturas-demo
+GET  /api/sistemas360/comprobantes/{id}
+GET  /api/sistemas360/comprobantes/{id}/pdf
 ```
 
-## Comandos disponibles
+### Crear una Factura B
 
-| Comando | Descripción |
-|---|---|
-| `dotnet run -- ping` | Valida el token y la conexión |
-| `dotnet run -- crear` | Crea una Factura B de ejemplo |
-| `dotnet run -- consultar ID` | Consulta un comprobante |
-| `dotnet run -- descargar-pdf ID` | Descarga el PDF A4 |
-
-## Ejemplo de Factura B
-
-El ejemplo envía:
+El endpoint `POST /api/sistemas360/facturas-demo` recibe un cuerpo simplificado:
 
 ```json
 {
-  "tipo_comprobante": "factura_b",
-  "concepto": "productos",
-  "fecha": "2026-07-07",
-  "referencia_externa": "venta_dotnet_1783456789000",
-  "cliente": {
-    "documento_tipo": "dni",
-    "documento_numero": "30111222",
-    "razon_social": "Cliente Demo",
-    "condicion_iva_receptor_id": 5
-  },
-  "items": [
-    {
-      "descripcion": "Producto de ejemplo",
-      "cantidad": 1,
-      "precio_unitario": 10000,
-      "tipo_impuesto": "gravado",
-      "iva": 21
-    }
-  ],
-  "total": 12100,
-  "moneda": "PES"
+  "documentoNumero": "30111222",
+  "razonSocial": "Cliente Demo",
+  "descripcion": "Producto de ejemplo",
+  "precioUnitario": 10000
 }
+```
+
+El servicio calcula automáticamente el IVA (21%), el total y una `referencia_externa` única antes de enviar la Factura B a la API de Sistemas 360.
+
+Ejemplo con cURL contra el servidor local:
+
+```bash
+curl -X POST "http://localhost:5000/api/sistemas360/facturas-demo" \
+  -H "Content-Type: application/json" \
+  -d '{
+    "documentoNumero": "30111222",
+    "razonSocial": "Cliente Demo",
+    "descripcion": "Producto de ejemplo",
+    "precioUnitario": 10000
+  }'
+```
+
+### Consultar un comprobante
+
+```bash
+curl "http://localhost:5000/api/sistemas360/comprobantes/151"
+```
+
+### Descargar el PDF A4
+
+```bash
+curl "http://localhost:5000/api/sistemas360/comprobantes/151/pdf" --output comprobante-151.pdf
 ```
 
 ## Idempotencia
 
-La propiedad `referencia_externa` identifica una operación única.
-
-Si se vuelve a enviar la misma referencia para el mismo emisor, la API devuelve el comprobante existente y evita generar un duplicado.
-
-## Manejo de errores
-
-El cliente muestra:
-
-- Código HTTP.
-- Motivo del error.
-- Respuesta JSON enviada por la API.
-- Errores por token faltante.
-- Errores por ID inválido.
-- Errores por timeout.
-- Error si la descarga no devuelve un PDF.
+Ambos ejemplos generan una `referencia_externa` única por operación (`venta_dotnet_<timestamp>` en la consola, `venta_aspnet_<guid>` en la API). Si se reenvía la misma referencia para el mismo emisor, la API devuelve el comprobante existente en lugar de duplicarlo.
 
 ## Seguridad
 
@@ -182,7 +180,7 @@ No expongas el token en:
 - Código frontend.
 - Aplicaciones móviles.
 - Repositorios públicos.
-- Archivos versionados.
+- Archivos versionados (`appsettings.json` no contiene tokens reales; se cargan por variable de entorno).
 - Capturas de pantalla.
 - Logs públicos.
 
