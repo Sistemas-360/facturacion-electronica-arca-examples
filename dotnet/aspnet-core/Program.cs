@@ -1,4 +1,5 @@
 using System.Net.Http.Headers;
+using Microsoft.AspNetCore.Diagnostics;
 using Microsoft.Extensions.Options;
 using Sistemas360Example.Api.Client;
 using Sistemas360Example.Api.Configuration;
@@ -75,6 +76,42 @@ builder.Services.AddScoped<
 >();
 
 var app = builder.Build();
+
+app.UseExceptionHandler(errorApp =>
+{
+    errorApp.Run(async context =>
+    {
+        Exception? exception =
+            context.Features
+                .Get<IExceptionHandlerFeature>()
+                ?.Error;
+
+        (int statusCode, string message) = exception switch
+        {
+            ArgumentException argumentException =>
+                (StatusCodes.Status400BadRequest, argumentException.Message),
+
+            HttpRequestException httpRequestException =>
+                (
+                    (int?)httpRequestException.StatusCode
+                        ?? StatusCodes.Status502BadGateway,
+                    httpRequestException.Message
+                ),
+
+            _ =>
+                (StatusCodes.Status500InternalServerError, "Error interno del servidor."),
+        };
+
+        context.Response.StatusCode = statusCode;
+        context.Response.ContentType = "application/json";
+
+        await context.Response.WriteAsJsonAsync(new
+        {
+            ok = false,
+            error = message,
+        });
+    });
+});
 
 app.UseHttpsRedirection();
 

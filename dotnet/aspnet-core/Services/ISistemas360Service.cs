@@ -9,8 +9,8 @@ public interface ISistemas360Service
         CancellationToken cancellationToken = default
     );
 
-    Task<JsonDocument> CrearFacturaDemoAsync(
-        CrearFacturaDemoRequest request,
+    Task<JsonDocument> CrearComprobanteAsync(
+        CrearComprobanteRequest request,
         CancellationToken cancellationToken = default
     );
 

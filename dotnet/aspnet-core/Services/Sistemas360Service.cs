@@ -25,84 +25,15 @@ public sealed class Sistemas360Service
         );
     }
 
-    public Task<JsonDocument> CrearFacturaDemoAsync(
-        CrearFacturaDemoRequest request,
+    public Task<JsonDocument> CrearComprobanteAsync(
+        CrearComprobanteRequest request,
         CancellationToken cancellationToken = default
     )
     {
-        if (string.IsNullOrWhiteSpace(request.DocumentoNumero))
-        {
-            throw new ArgumentException(
-                "DocumentoNumero es obligatorio."
-            );
-        }
-
-        if (string.IsNullOrWhiteSpace(request.RazonSocial))
-        {
-            throw new ArgumentException(
-                "RazonSocial es obligatoria."
-            );
-        }
-
-        if (string.IsNullOrWhiteSpace(request.Descripcion))
-        {
-            throw new ArgumentException(
-                "Descripcion es obligatoria."
-            );
-        }
-
-        if (request.PrecioUnitario <= 0)
-        {
-            throw new ArgumentException(
-                "PrecioUnitario debe ser mayor que cero."
-            );
-        }
-
-        decimal iva =
-            decimal.Round(
-                request.PrecioUnitario * 0.21m,
-                2,
-                MidpointRounding.AwayFromZero
-            );
-
-        decimal total =
-            request.PrecioUnitario + iva;
-
-        var comprobante =
-            new CrearComprobanteRequest(
-                TipoComprobante: "factura_b",
-                Concepto: "productos",
-                Fecha: DateOnly
-                    .FromDateTime(DateTime.Today)
-                    .ToString("yyyy-MM-dd"),
-                ReferenciaExterna:
-                    $"venta_aspnet_{Guid.NewGuid():N}",
-                Cliente: new ClienteRequest(
-                    DocumentoTipo: "dni",
-                    DocumentoNumero:
-                        request.DocumentoNumero,
-                    RazonSocial:
-                        request.RazonSocial,
-                    CondicionIvaReceptorId: 5
-                ),
-                Items:
-                [
-                    new ItemRequest(
-                        Descripcion:
-                            request.Descripcion,
-                        Cantidad: 1m,
-                        PrecioUnitario:
-                            request.PrecioUnitario,
-                        TipoImpuesto: "gravado",
-                        Iva: 21m
-                    )
-                ],
-                Total: total,
-                Moneda: "PES"
-            );
+        ValidarComprobante(request);
 
         return _client.CrearComprobanteAsync(
-            comprobante,
+            request,
             cancellationToken
         );
     }
@@ -127,5 +58,68 @@ public sealed class Sistemas360Service
             comprobanteId,
             cancellationToken
         );
+    }
+
+    private static void ValidarComprobante(
+        CrearComprobanteRequest request
+    )
+    {
+        ArgumentNullException.ThrowIfNull(request);
+
+        if (string.IsNullOrWhiteSpace(request.TipoComprobante))
+        {
+            throw new ArgumentException(
+                "tipo_comprobante es obligatorio."
+            );
+        }
+
+        if (string.IsNullOrWhiteSpace(request.Concepto))
+        {
+            throw new ArgumentException(
+                "concepto es obligatorio."
+            );
+        }
+
+        if (string.IsNullOrWhiteSpace(request.Fecha))
+        {
+            throw new ArgumentException(
+                "fecha es obligatoria."
+            );
+        }
+
+        if (string.IsNullOrWhiteSpace(request.ReferenciaExterna))
+        {
+            throw new ArgumentException(
+                "referencia_externa es obligatoria."
+            );
+        }
+
+        if (request.Cliente is null)
+        {
+            throw new ArgumentException(
+                "cliente es obligatorio."
+            );
+        }
+
+        if (request.Items is null || request.Items.Count == 0)
+        {
+            throw new ArgumentException(
+                "Debe incluir al menos un ítem."
+            );
+        }
+
+        if (request.Total <= 0)
+        {
+            throw new ArgumentException(
+                "total debe ser mayor que cero."
+            );
+        }
+
+        if (string.IsNullOrWhiteSpace(request.Moneda))
+        {
+            throw new ArgumentException(
+                "moneda es obligatoria."
+            );
+        }
     }
 }

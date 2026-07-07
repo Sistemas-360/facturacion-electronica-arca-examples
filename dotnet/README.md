@@ -47,8 +47,7 @@ dotnet/
     └── Models/
         ├── ClienteRequest.cs
         ├── ItemRequest.cs
-        ├── CrearComprobanteRequest.cs
-        └── CrearFacturaDemoRequest.cs
+        └── CrearComprobanteRequest.cs
 ```
 
 ## Consola
@@ -84,7 +83,44 @@ Reemplazá `151` por el ID real del comprobante. El PDF se guarda en la carpeta 
 
 ## ASP.NET Core
 
-Objetivo: mostrar cómo integrar la API dentro de un backend empresarial (ERP, SaaS, microservicios, sistemas administrativos, workers, backends empresariales), exponiendo la funcionalidad como una API web propia.
+Objetivo: mostrar cómo integrar la API dentro de un backend empresarial (ERP, SaaS, microservicios, sistemas administrativos, workers, backends empresariales), exponiendo un proxy local propio que reenvía las solicitudes a la API oficial de Sistemas 360.
+
+### Diferencia entre la API local y Sistemas 360
+
+El proyecto ASP.NET Core expone endpoints propios bajo `/api/facturacion`. Estos endpoints pertenecen únicamente al backend de ejemplo.
+
+Cuando el backend recibe una solicitud, utiliza el token privado para consumir la API oficial de Sistemas 360 en `https://api.sistemas360.ar`.
+
+Flujo:
+
+```text
+Cliente o ERP
+  → Backend ASP.NET Core local
+  → API Sistemas 360
+  → ARCA
+```
+
+La API local no reemplaza ni modifica los endpoints oficiales.
+
+### Endpoints locales
+
+Estos endpoints son del proyecto ASP.NET Core de ejemplo:
+
+```text
+GET  /api/facturacion/ping
+POST /api/facturacion/comprobantes
+GET  /api/facturacion/comprobantes/{id}
+GET  /api/facturacion/comprobantes/{id}/pdf
+```
+
+### Endpoints oficiales consumidos internamente
+
+```text
+GET  https://api.sistemas360.ar/api/ping
+POST https://api.sistemas360.ar/api/comprobantes
+GET  https://api.sistemas360.ar/api/comprobantes/{id}
+GET  https://api.sistemas360.ar/api/comprobantes/{id}/imprimir-a4
+```
 
 ### Configurar token
 
@@ -120,58 +156,105 @@ $env:Sistemas360__BaseUrl="https://api.sistemas360.ar"
 dotnet run --project aspnet-core
 ```
 
-### Endpoints locales
-
-```text
-GET  /api/sistemas360/ping
-POST /api/sistemas360/facturas-demo
-GET  /api/sistemas360/comprobantes/{id}
-GET  /api/sistemas360/comprobantes/{id}/pdf
-```
-
 ### Crear una Factura B
 
-El endpoint `POST /api/sistemas360/facturas-demo` recibe un cuerpo simplificado:
+El endpoint local `POST /api/facturacion/comprobantes` recibe la misma estructura completa de comprobante que utiliza la API oficial de Sistemas 360. No hay cálculo automático de IVA, total, cliente ni tipo de comprobante: todos los valores deben venir explícitos en la solicitud, igual que al llamar directamente a `https://api.sistemas360.ar/api/comprobantes`.
 
 ```json
 {
-  "documentoNumero": "30111222",
-  "razonSocial": "Cliente Demo",
-  "descripcion": "Producto de ejemplo",
-  "precioUnitario": 10000
+  "tipo_comprobante": "factura_b",
+  "concepto": "productos",
+  "fecha": "2026-07-07",
+  "referencia_externa": "venta_erp_000001",
+  "cliente": {
+    "documento_tipo": "dni",
+    "documento_numero": "30111222",
+    "razon_social": "Cliente Demo",
+    "condicion_iva_receptor_id": 5
+  },
+  "items": [
+    {
+      "descripcion": "Producto de ejemplo",
+      "cantidad": 1,
+      "precio_unitario": 10000,
+      "tipo_impuesto": "gravado",
+      "iva": 21
+    }
+  ],
+  "total": 12100,
+  "moneda": "PES"
 }
 ```
-
-El servicio calcula automáticamente el IVA (21%), el total y una `referencia_externa` única antes de enviar la Factura B a la API de Sistemas 360.
 
 Ejemplo con cURL contra el servidor local:
 
 ```bash
-curl -X POST "http://localhost:5000/api/sistemas360/facturas-demo" \
+curl -X POST "http://localhost:5000/api/facturacion/comprobantes" \
   -H "Content-Type: application/json" \
   -d '{
-    "documentoNumero": "30111222",
-    "razonSocial": "Cliente Demo",
-    "descripcion": "Producto de ejemplo",
-    "precioUnitario": 10000
+    "tipo_comprobante": "factura_b",
+    "concepto": "productos",
+    "fecha": "2026-07-07",
+    "referencia_externa": "venta_erp_000001",
+    "cliente": {
+      "documento_tipo": "dni",
+      "documento_numero": "30111222",
+      "razon_social": "Cliente Demo",
+      "condicion_iva_receptor_id": 5
+    },
+    "items": [
+      {
+        "descripcion": "Producto de ejemplo",
+        "cantidad": 1,
+        "precio_unitario": 10000,
+        "tipo_impuesto": "gravado",
+        "iva": 21
+      }
+    ],
+    "total": 12100,
+    "moneda": "PES"
   }'
 ```
+
+La URL y el puerto locales pueden variar según la configuración de ASP.NET Core (por ejemplo, el puerto que asigne `dotnet run` o tu `launchSettings.json`).
 
 ### Consultar un comprobante
 
 ```bash
-curl "http://localhost:5000/api/sistemas360/comprobantes/151"
+curl "http://localhost:5000/api/facturacion/comprobantes/151"
 ```
 
 ### Descargar el PDF A4
 
 ```bash
-curl "http://localhost:5000/api/sistemas360/comprobantes/151/pdf" --output comprobante-151.pdf
+curl "http://localhost:5000/api/facturacion/comprobantes/151/pdf" --output comprobante-151.pdf
 ```
+
+### Manejo de errores
+
+El backend local devuelve siempre JSON, nunca una página HTML ni un stack trace:
+
+```json
+{
+  "ok": false,
+  "error": "Mensaje del error"
+}
+```
+
+- Datos inválidos en la solicitud (`ArgumentException`) → HTTP 400.
+- Error devuelto por la API de Sistemas 360 (`HttpRequestException`) → se conserva el código HTTP remoto si está disponible; si no, HTTP 502.
+- Cualquier otro error → HTTP 500, sin exponer stack trace, token, encabezado `Authorization` ni configuración interna.
 
 ## Idempotencia
 
-Ambos ejemplos generan una `referencia_externa` única por operación (`venta_dotnet_<timestamp>` en la consola, `venta_aspnet_<guid>` en la API). Si se reenvía la misma referencia para el mismo emisor, la API devuelve el comprobante existente en lugar de duplicarlo.
+La propiedad `referencia_externa` debe generarla el ERP, SaaS o sistema integrador que llama al backend, no el backend en sí:
+
+- Debe representar una operación comercial única (por ejemplo, el ID de una venta o pedido).
+- Debe reutilizarse al reintentar la misma operación.
+- No debe generarse una referencia nueva en cada reintento.
+- Si se reenvía la misma referencia para el mismo emisor, la API de Sistemas 360 devuelve el comprobante existente en lugar de crear uno duplicado.
+
+El servicio ASP.NET Core no genera `referencia_externa` automáticamente: el valor debe venir explícito en el JSON recibido, igual que el resto de los campos del comprobante.
 
 ## Seguridad
 
@@ -183,6 +266,8 @@ No expongas el token en:
 - Archivos versionados (`appsettings.json` no contiene tokens reales; se cargan por variable de entorno).
 - Capturas de pantalla.
 - Logs públicos.
+
+El Bearer Token solo se agrega al `HttpClient` que consume la API de Sistemas 360; nunca se refleja en las respuestas del backend local, ni siquiera en los mensajes de error.
 
 Usá variables de entorno y realizá las solicitudes desde un backend seguro.
 

@@ -5,7 +5,7 @@ using Sistemas360Example.Api.Services;
 namespace Sistemas360Example.Api.Controllers;
 
 [ApiController]
-[Route("api/sistemas360")]
+[Route("api/facturacion")]
 public sealed class ComprobantesController
     : ControllerBase
 {
@@ -34,14 +34,14 @@ public sealed class ComprobantesController
         );
     }
 
-    [HttpPost("facturas-demo")]
-    public async Task<IActionResult> CrearFacturaDemo(
-        [FromBody] CrearFacturaDemoRequest request,
+    [HttpPost("comprobantes")]
+    public async Task<IActionResult> CrearComprobante(
+        [FromBody] CrearComprobanteRequest request,
         CancellationToken cancellationToken
     )
     {
         using var response =
-            await _service.CrearFacturaDemoAsync(
+            await _service.CrearComprobanteAsync(
                 request,
                 cancellationToken
             );
