@@ -33,10 +33,10 @@ La API permite emitir Facturas A, B y C, notas de crédito y notas de débito de
 |---|---|
 | cURL | [Ver ejemplos](./curl) |
 | Node.js y TypeScript | [Ver ejemplos](./node-typescript) |
+| Python | [Ver ejemplos](./python) |
 
 Próximamente:
 
-- Python
 - Java y Spring Boot
 - C# y .NET
 - Go
