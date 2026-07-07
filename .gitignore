@@ -23,6 +23,13 @@ target/
 *.jar
 *.war
 
+# .NET
+bin/
+obj/
+*.user
+*.suo
+.vs/
+
 # PDFs descargados
 *.pdf
 

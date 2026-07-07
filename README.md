@@ -35,10 +35,10 @@ La API permite emitir Facturas A, B y C, notas de crédito y notas de débito de
 | Node.js y TypeScript | [Ver ejemplos](./node-typescript) |
 | Python | [Ver ejemplos](./python) |
 | Java y Spring Boot | [Ver ejemplos](./java-spring-boot) |
+| C# y .NET | [Ver ejemplos](./dotnet) |
 
 Próximamente:
 
-- C# y .NET
 - Go
 - Next.js
 - NestJS
