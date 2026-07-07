@@ -1,0 +1,24 @@
+{
+  "name": "facturacion-electronica-arca-node-typescript",
+  "version": "1.0.0",
+  "private": true,
+  "description": "Ejemplo oficial para integrar la API Sistemas 360 con Node.js y TypeScript.",
+  "scripts": {
+    "ping": "tsx src/ping.ts",
+    "crear-factura": "tsx src/crear-factura.ts",
+    "consultar": "tsx src/consultar-comprobante.ts",
+    "descargar-pdf": "tsx src/descargar-pdf.ts",
+    "typecheck": "tsc --noEmit"
+  },
+  "engines": {
+    "node": ">=18"
+  },
+  "dependencies": {
+    "dotenv": "^16.4.7"
+  },
+  "devDependencies": {
+    "@types/node": "^22.10.0",
+    "tsx": "^4.19.2",
+    "typescript": "^5.7.2"
+  }
+}
