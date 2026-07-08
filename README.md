@@ -33,18 +33,19 @@ Los ejemplos publicados son puntos de partida. No representan una lista cerrada 
 
 | Tecnología | Descripción | Enlace |
 |---|---|---|
-| cURL | Scripts directos para validar conexión, crear, consultar y descargar PDF A4 | [Ver ejemplo](./curl/README.md) |
-| Node.js y TypeScript | Cliente de consola con scripts para ping, creación, consulta y descarga | [Ver ejemplo](./node-typescript/README.md) |
-| Python | Scripts de referencia para autenticación, creación, consulta y descarga | [Ver ejemplo](./python/README.md) |
-| Java y Spring Boot | Aplicación de consola con `RestClient` para probar la integración | [Ver ejemplo](./java-spring-boot/README.md) |
-| C# y .NET | Ejemplo de consola y backend ASP.NET Core como proxy integrador | [Ver ejemplo](./dotnet/README.md) |
-| Go | Cliente de consola tipado con pruebas automatizadas | [Ver ejemplo](./go/README.md) |
+| ![cURL](https://img.shields.io/badge/cURL-073551?logo=curl&logoColor=white) | Scripts directos para validar conexión, crear, consultar y descargar PDF A4 | [Ver ejemplo](./curl/README.md) |
+| ![Node.js](https://img.shields.io/badge/Node.js-5FA04E?logo=node.js&logoColor=white) ![TypeScript](https://img.shields.io/badge/TypeScript-3178C6?logo=typescript&logoColor=white) | Cliente de consola con scripts para ping, creación, consulta y descarga | [Ver ejemplo](./node-typescript/README.md) |
+| ![Python](https://img.shields.io/badge/Python-3776AB?logo=python&logoColor=white) | Scripts de referencia para autenticación, creación, consulta y descarga | [Ver ejemplo](./python/README.md) |
+| ![PHP](https://img.shields.io/badge/PHP-777BB4?logo=php&logoColor=white) | Scripts simples en PHP puro para consumir la API sin framework | [Ver ejemplo](./php/README.md) |
+| ![Java](https://img.shields.io/badge/Java-ED8B00?logo=openjdk&logoColor=white) ![Spring Boot](https://img.shields.io/badge/Spring_Boot-6DB33F?logo=springboot&logoColor=white) | Aplicación de consola con `RestClient` para probar la integración | [Ver ejemplo](./java-spring-boot/README.md) |
+| ![C#](https://img.shields.io/badge/C%23-512BD4?logo=csharp&logoColor=white) ![.NET](https://img.shields.io/badge/.NET-512BD4?logo=dotnet&logoColor=white) | Ejemplo de consola y backend ASP.NET Core como proxy integrador | [Ver ejemplo](./dotnet/README.md) |
+| ![Go](https://img.shields.io/badge/Go-00ADD8?logo=go&logoColor=white) | Cliente de consola tipado con pruebas automatizadas | [Ver ejemplo](./go/README.md) |
+| ![NestJS](https://img.shields.io/badge/NestJS-E0234E?logo=nestjs&logoColor=white) | Backend HTTP propio que encapsula el token y expone endpoints locales | [Ver ejemplo](./nestjs/README.md) |
+| ![FastAPI](https://img.shields.io/badge/FastAPI-009688?logo=fastapi&logoColor=white) | Backend HTTP propio en Python para proxy de facturación electrónica | [Ver ejemplo](./fastapi/README.md) |
 
 ## Próximos frameworks
 
 - Laravel
-- NestJS
-- FastAPI
 - Next.js del lado servidor
 
 ## Próximas herramientas de integración
