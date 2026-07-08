@@ -30,6 +30,12 @@ obj/
 *.suo
 .vs/
 
+# Go
+/go/facturacion
+/go/facturacion.exe
+*.test
+*.out
+
 # PDFs descargados
 *.pdf
 
