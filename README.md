@@ -43,9 +43,8 @@ Los ejemplos publicados son puntos de partida. No representan una lista cerrada 
 | ![NestJS](https://img.shields.io/badge/NestJS-E0234E?logo=nestjs&logoColor=white) | Backend HTTP propio que encapsula el token y expone endpoints locales | [Ver ejemplo](./nestjs/README.md) |
 | ![FastAPI](https://img.shields.io/badge/FastAPI-009688?logo=fastapi&logoColor=white) | Backend HTTP propio en Python para proxy de facturación electrónica | [Ver ejemplo](./fastapi/README.md) |
 
-## Próximos frameworks
+## Próximo framework
 
-- Laravel
 - Next.js del lado servidor
 
 ## Próximas herramientas de integración
