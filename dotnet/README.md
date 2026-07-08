@@ -1,18 +1,18 @@
-# Facturación electrónica ARCA con C# y .NET
+# API de facturación electrónica ARCA con C# y .NET
 
-Ejemplos oficiales para integrar la API REST de facturación electrónica ARCA en Argentina desde C# y .NET.
+Ejemplos de referencia para integrar la API REST de facturación electrónica desde C# y .NET.
 
 ## Ejemplos disponibles
 
 | Proyecto | Uso |
 |---|---|
-| `console/` | Prueba rápida desde terminal |
-| `aspnet-core/` | Integración empresarial mediante API web |
+| `console/` | Cliente de consola para validar conexión, crear, consultar y descargar PDF A4 |
+| `aspnet-core/` | Backend ASP.NET Core que actúa como proxy integrador hacia la API oficial |
 
 ## Requisitos
 
-- .NET 10 SDK o superior compatible
-- Token de pruebas o producción de Sistemas 360
+- .NET 10 SDK o superior compatible.
+- Bearer Token de ambiente de pruebas o ambiente de producción.
 
 No se utilizan paquetes externos en ninguno de los dos proyectos.
 
@@ -20,39 +20,39 @@ No se utilizan paquetes externos en ninguno de los dos proyectos.
 
 ```text
 dotnet/
-├── README.md
-├── console/
-│   ├── Sistemas360Example.Console.csproj
-│   ├── Program.cs
-│   ├── Client/
-│   │   └── Sistemas360Client.cs
-│   └── Models/
-│       ├── ClienteRequest.cs
-│       ├── ItemRequest.cs
-│       └── CrearComprobanteRequest.cs
-└── aspnet-core/
-    ├── Sistemas360Example.Api.csproj
-    ├── Program.cs
-    ├── appsettings.json
-    ├── appsettings.Development.json
-    ├── Controllers/
-    │   └── ComprobantesController.cs
-    ├── Services/
-    │   ├── ISistemas360Service.cs
-    │   └── Sistemas360Service.cs
-    ├── Client/
-    │   └── Sistemas360Client.cs
-    ├── Configuration/
-    │   └── Sistemas360Options.cs
-    └── Models/
-        ├── ClienteRequest.cs
-        ├── ItemRequest.cs
-        └── CrearComprobanteRequest.cs
+|-- README.md
+|-- console/
+|   |-- Sistemas360Example.Console.csproj
+|   |-- Program.cs
+|   |-- Client/
+|   |   `-- Sistemas360Client.cs
+|   `-- Models/
+|       |-- ClienteRequest.cs
+|       |-- ItemRequest.cs
+|       `-- CrearComprobanteRequest.cs
+`-- aspnet-core/
+    |-- Sistemas360Example.Api.csproj
+    |-- Program.cs
+    |-- appsettings.json
+    |-- appsettings.Development.json
+    |-- Controllers/
+    |   `-- ComprobantesController.cs
+    |-- Services/
+    |   |-- ISistemas360Service.cs
+    |   `-- Sistemas360Service.cs
+    |-- Client/
+    |   `-- Sistemas360Client.cs
+    |-- Configuration/
+    |   `-- Sistemas360Options.cs
+    `-- Models/
+        |-- ClienteRequest.cs
+        |-- ItemRequest.cs
+        `-- CrearComprobanteRequest.cs
 ```
 
 ## Consola
 
-Objetivo: probar la API rápidamente desde la terminal, sin infraestructura adicional.
+Cliente de consola para probar la integración desde terminal.
 
 ### Configuración
 
@@ -72,39 +72,35 @@ $env:SISTEMAS360_TOKEN="TU_TOKEN"
 
 ### Comandos
 
-```bash
-dotnet run --project console -- ping
-dotnet run --project console -- crear
-dotnet run --project console -- consultar 151
-dotnet run --project console -- descargar-pdf 151
-```
+| Comando | Endpoint oficial |
+|---|---|
+| `dotnet run --project console -- ping` | `GET /api/ping` |
+| `dotnet run --project console -- crear` | `POST /api/comprobantes` |
+| `dotnet run --project console -- consultar 151` | `GET /api/comprobantes/{id}` |
+| `dotnet run --project console -- descargar-pdf 151` | `GET /api/comprobantes/{id}/imprimir-a4` |
 
-Reemplazá `151` por el ID real del comprobante. El PDF se guarda en la carpeta actual como `comprobante-151.pdf`.
+Reemplazá `151` por el ID real del comprobante. El PDF se guarda como `comprobante-151.pdf`.
+
+La operación `crear` genera automáticamente una `referencia_externa` de ejemplo para la prueba manual. En una integración real, ese valor debe generarlo y persistirlo el backend integrador.
 
 ## ASP.NET Core
 
-Objetivo: mostrar cómo integrar la API dentro de un backend empresarial (ERP, SaaS, microservicios, sistemas administrativos, workers, backends empresariales), exponiendo un proxy local propio que reenvía las solicitudes a la API oficial de Sistemas 360.
+Backend de ejemplo para encapsular el Bearer Token y exponer endpoints locales propios.
 
-### Diferencia entre la API local y Sistemas 360
+### Diferencia entre la API local y la API oficial
 
-El proyecto ASP.NET Core expone endpoints propios bajo `/api/facturacion`. Estos endpoints pertenecen únicamente al backend de ejemplo.
-
-Cuando el backend recibe una solicitud, utiliza el token privado para consumir la API oficial de Sistemas 360 en `https://api.sistemas360.ar`.
+El proyecto ASP.NET Core expone endpoints locales bajo `/api/facturacion`. Esos endpoints pertenecen solo al backend de ejemplo y no reemplazan la API oficial.
 
 Flujo:
 
 ```text
-Cliente o ERP
-  → Backend ASP.NET Core local
-  → API Sistemas 360
-  → ARCA
+Cliente o sistema integrador
+  -> Backend ASP.NET Core local
+  -> API de facturación electrónica de Sistemas 360
+  -> ARCA
 ```
 
-La API local no reemplaza ni modifica los endpoints oficiales.
-
 ### Endpoints locales
-
-Estos endpoints son del proyecto ASP.NET Core de ejemplo:
 
 ```text
 GET  /api/facturacion/ping
@@ -158,7 +154,7 @@ dotnet run --project aspnet-core
 
 ### Crear una Factura B
 
-El endpoint local `POST /api/facturacion/comprobantes` recibe la misma estructura completa de comprobante que utiliza la API oficial de Sistemas 360. No hay cálculo automático de IVA, total, cliente ni tipo de comprobante: todos los valores deben venir explícitos en la solicitud, igual que al llamar directamente a `https://api.sistemas360.ar/api/comprobantes`.
+El endpoint local `POST /api/facturacion/comprobantes` recibe la misma estructura JSON del endpoint oficial `POST /api/comprobantes`.
 
 ```json
 {
@@ -216,7 +212,7 @@ curl -X POST "http://localhost:5000/api/facturacion/comprobantes" \
   }'
 ```
 
-La URL y el puerto locales pueden variar según la configuración de ASP.NET Core (por ejemplo, el puerto que asigne `dotnet run` o tu `launchSettings.json`).
+La URL y el puerto locales pueden variar según la configuración de ASP.NET Core.
 
 ### Consultar un comprobante
 
@@ -232,7 +228,7 @@ curl "http://localhost:5000/api/facturacion/comprobantes/151/pdf" --output compr
 
 ### Manejo de errores
 
-El backend local devuelve siempre JSON, nunca una página HTML ni un stack trace:
+Ante un error, el backend local devuelve JSON:
 
 ```json
 {
@@ -241,40 +237,35 @@ El backend local devuelve siempre JSON, nunca una página HTML ni un stack trace
 }
 ```
 
-- Datos inválidos en la solicitud (`ArgumentException`) → HTTP 400.
-- Error devuelto por la API de Sistemas 360 (`HttpRequestException`) → se conserva el código HTTP remoto si está disponible; si no, HTTP 502.
-- Cualquier otro error → HTTP 500, sin exponer stack trace, token, encabezado `Authorization` ni configuración interna.
+- `400`: datos inválidos en la solicitud.
+- `502` o código remoto original: error devuelto por la API externa.
+- `500`: error interno sin exponer stack trace ni credenciales.
 
 ## Idempotencia
 
-La propiedad `referencia_externa` debe generarla el ERP, SaaS o sistema integrador que llama al backend, no el backend en sí:
+`referencia_externa` identifica una operación única del sistema integrador.
 
-- Debe representar una operación comercial única (por ejemplo, el ID de una venta o pedido).
-- Debe reutilizarse al reintentar la misma operación.
-- No debe generarse una referencia nueva en cada reintento.
-- Si se reenvía la misma referencia para el mismo emisor, la API de Sistemas 360 devuelve el comprobante existente en lugar de crear uno duplicado.
+- Debe generarla el backend que origina la operación.
+- Debe persistirse para poder reintentar la misma operación.
+- No debe regenerarse en cada reintento.
 
-El servicio ASP.NET Core no genera `referencia_externa` automáticamente: el valor debe venir explícito en el JSON recibido, igual que el resto de los campos del comprobante.
+Si se reenvía la misma referencia para el mismo emisor, la API devuelve el comprobante existente y evita duplicados.
 
 ## Seguridad
 
-No expongas el token en:
+El token pertenece al backend. No debe exponerse en frontend, aplicaciones móviles, repositorios públicos, logs ni capturas.
 
-- Código frontend.
-- Aplicaciones móviles.
-- Repositorios públicos.
-- Archivos versionados (`appsettings.json` no contiene tokens reales; se cargan por variable de entorno).
-- Capturas de pantalla.
-- Logs públicos.
+El ejemplo ASP.NET Core encapsula el Bearer Token del lado servidor y no lo devuelve en respuestas ni errores.
 
-El Bearer Token solo se agrega al `HttpClient` que consume la API de Sistemas 360; nunca se refleja en las respuestas del backend local, ni siquiera en los mensajes de error.
+## Ambientes
 
-Usá variables de entorno y realizá las solicitudes desde un backend seguro.
+- `Ambiente de pruebas`: permite validar la integración antes de operar fiscalmente. Los comprobantes generados no tienen validez fiscal.
+- `Ambiente de producción`: permite emitir comprobantes fiscales reales y requiere la configuración fiscal completa del contribuyente.
+
+## Alcance del ejemplo
+
+Los proyectos incluidos cubren ping, creación, consulta y descarga de PDF A4. Son puntos de partida para un backend integrador. Los casos avanzados, como reintento técnico o PDF ticket, están en la documentación oficial.
 
 ## Documentación oficial
 
-https://api.sistemas360.ar/documentacion-api
-
-## Ejemplos oficiales
-
-https://github.com/Sistemas-360/facturacion-electronica-arca-examples
+[api.sistemas360.ar/documentacion-api](https://api.sistemas360.ar/documentacion-api)

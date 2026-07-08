@@ -1,11 +1,11 @@
-# Facturación electrónica ARCA con Python
+# API de facturación electrónica ARCA con Python
 
-Ejemplo oficial para consumir la API REST de facturación electrónica ARCA de Sistemas 360 desde Python.
+Implementación de referencia para consumir la API REST de facturación electrónica desde un backend Python.
 
 ## Requisitos
 
-- Python 3.10 o superior
-- Token de pruebas o producción de Sistemas 360
+- Python 3.10 o superior.
+- Bearer Token de ambiente de pruebas o ambiente de producción.
 
 ## Instalación
 
@@ -58,6 +58,15 @@ SISTEMAS360_BASE_URL=https://api.sistemas360.ar
 SISTEMAS360_TOKEN=TU_TOKEN
 ```
 
+## Scripts disponibles
+
+| Script | Endpoint oficial | Descripción |
+|---|---|---|
+| `python ping.py` | `GET /api/ping` | Valida conexión, token y ambiente |
+| `python crear_factura.py` | `POST /api/comprobantes` | Crea una Factura B de ejemplo |
+| `python consultar_comprobante.py 143` | `GET /api/comprobantes/{id}` | Consulta un comprobante |
+| `python descargar_pdf.py 143` | `GET /api/comprobantes/{id}/imprimir-a4` | Descarga el PDF A4 |
+
 ## Validar conexión
 
 ```bash
@@ -72,9 +81,9 @@ python crear_factura.py
 
 El ejemplo genera automáticamente:
 
-- La fecha actual.
-- Una `referencia_externa` única.
-- Una Factura B de ejemplo.
+- la fecha actual;
+- una `referencia_externa` única de ejemplo;
+- una Factura B de referencia.
 
 ## Consultar un comprobante
 
@@ -90,23 +99,27 @@ Reemplazá `143` por el ID real del comprobante.
 python descargar_pdf.py 143
 ```
 
-El archivo se guardará como:
+El archivo se guarda como `comprobante-143.pdf`.
 
-```
-comprobante-143.pdf
-```
+## Idempotencia
+
+`referencia_externa` identifica una operación única. En este ejemplo se genera automáticamente para facilitar la prueba manual, pero en una integración real debe generarla y persistirla tu backend integrador.
 
 ## Seguridad
 
-No expongas el token en:
-
-- Código frontend.
-- Aplicaciones móviles.
-- Repositorios públicos.
-- Archivos versionados.
+El token pertenece al backend. No lo expongas en frontend, aplicaciones móviles, archivos versionados ni repositorios públicos.
 
 Las solicitudes deben realizarse desde un backend seguro.
 
+## Ambientes
+
+- `Ambiente de pruebas`: permite validar la integración antes de operar fiscalmente. Los comprobantes generados no tienen validez fiscal.
+- `Ambiente de producción`: permite emitir comprobantes fiscales reales y requiere la configuración fiscal completa del contribuyente.
+
+## Alcance del ejemplo
+
+Este ejemplo cubre ping, creación, consulta y descarga de PDF A4. Es un punto de partida para una integración fiscal. Los casos avanzados están en la documentación oficial.
+
 ## Documentación oficial
 
-https://api.sistemas360.ar/documentacion-api
+[api.sistemas360.ar/documentacion-api](https://api.sistemas360.ar/documentacion-api)

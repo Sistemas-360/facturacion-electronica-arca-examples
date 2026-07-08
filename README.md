@@ -1,59 +1,74 @@
-# Ejemplos de API de Facturación Electrónica ARCA en Argentina
+# API de facturación electrónica ARCA
 
-Ejemplos oficiales de Sistemas 360 para integrar facturación electrónica ARCA mediante una API REST JSON.
+API REST de facturación electrónica para integrar emisión, consulta y descarga de comprobantes electrónicos autorizados por ARCA desde cualquier backend que pueda operar con HTTP y JSON.
 
-La API permite emitir Facturas A, B y C, notas de crédito y notas de débito desde cualquier backend capaz de realizar solicitudes HTTP y procesar JSON.
+Este repositorio reúne implementaciones de referencia para consumir la API desde distintos stacks sin cambiar el contrato externo de integración.
 
-## Funcionalidades
+## Compatibilidad con cualquier backend
 
-- API REST con JSON
-- Autenticación Bearer Token
-- Facturas A, B y C
-- Notas de crédito y débito
-- Autorización y CAE de ARCA
-- Código QR fiscal
-- PDF A4
-- PDF Ticket
-- Consulta de comprobantes
-- Reintentos técnicos
-- Idempotencia mediante `referencia_externa`
-- Ambientes de pruebas y producción
+La API es independiente del lenguaje y del framework. Puede integrarse desde cualquier backend capaz de:
 
-## Enlaces oficiales
+- realizar solicitudes HTTP;
+- enviar y recibir JSON;
+- configurar encabezados HTTP;
+- utilizar Bearer Token;
+- procesar códigos de estado;
+- almacenar credenciales de forma segura.
 
-- Sitio: https://api.sistemas360.ar
-- Documentación: https://api.sistemas360.ar/documentacion-api
-- Estado del servicio: https://api.sistemas360.ar/estado
-- Organización GitHub: https://github.com/Sistemas-360
-- Soporte: soporte@sistemas360.ar
+Los ejemplos publicados son puntos de partida. No representan una lista cerrada de tecnologías compatibles. También es posible integrar desde PHP, Symfony, Ruby, Kotlin, Rust u otras tecnologías con soporte para HTTP y JSON.
+
+## Funcionalidades principales
+
+- Validación de conexión con `GET /api/ping`.
+- Creación de comprobantes electrónicos con `POST /api/comprobantes`.
+- Consulta de comprobantes con `GET /api/comprobantes/{id}`.
+- Reintento técnico con `POST /api/comprobantes/{id}/reintentar`.
+- Descarga de PDF A4 con `GET /api/comprobantes/{id}/imprimir-a4`.
+- Descarga de PDF ticket con `GET /api/comprobantes/{id}/imprimir-ticket`.
+- Autenticación con Bearer Token.
+- Idempotencia mediante `referencia_externa`.
+- Manejo de ambientes de pruebas y ambiente de producción.
 
 ## Ejemplos disponibles
 
-| Tecnología | Ejemplos |
-|---|---|
-| cURL | [Ver ejemplos](./curl) |
-| Node.js y TypeScript | [Ver ejemplos](./node-typescript) |
-| Python | [Ver ejemplos](./python) |
-| Java y Spring Boot | [Ver ejemplos](./java-spring-boot) |
-| C# y .NET | [Ver ejemplos](./dotnet) |
-| Go | [Ver ejemplos](./go) |
+| Tecnología | Descripción | Enlace |
+|---|---|---|
+| cURL | Scripts directos para validar conexión, crear, consultar y descargar PDF A4 | [Ver ejemplo](./curl/README.md) |
+| Node.js y TypeScript | Cliente de consola con scripts para ping, creación, consulta y descarga | [Ver ejemplo](./node-typescript/README.md) |
+| Python | Scripts de referencia para autenticación, creación, consulta y descarga | [Ver ejemplo](./python/README.md) |
+| Java y Spring Boot | Aplicación de consola con `RestClient` para probar la integración | [Ver ejemplo](./java-spring-boot/README.md) |
+| C# y .NET | Ejemplo de consola y backend ASP.NET Core como proxy integrador | [Ver ejemplo](./dotnet/README.md) |
+| Go | Cliente de consola tipado con pruebas automatizadas | [Ver ejemplo](./go/README.md) |
 
-Próximamente:
+## Próximos frameworks
 
-- Next.js
+- Laravel
 - NestJS
 - FastAPI
-- Postman
-- OpenAPI
+- Next.js del lado servidor
+
+## Próximas herramientas de integración
+
+- Colección de Postman
+- Especificación OpenAPI
 
 ## Autenticación
 
-Todas las solicitudes deben enviar el token en el encabezado:
+Todas las solicitudes deben enviar el token API en el encabezado `Authorization`.
+
+Para requests JSON:
 
 ```http
 Authorization: Bearer TU_TOKEN
 Accept: application/json
 Content-Type: application/json
+```
+
+Para descargas PDF:
+
+```http
+Authorization: Bearer TU_TOKEN
+Accept: application/pdf
 ```
 
 ## Ejemplo rápido
@@ -90,41 +105,44 @@ curl -X POST "https://api.sistemas360.ar/api/comprobantes" \
 
 ## Idempotencia
 
-Usá una `referencia_externa` única para cada operación:
+`referencia_externa` identifica una operación única del backend integrador.
 
-```json
-{
-  "referencia_externa": "venta_1001"
-}
-```
+- Debe generarse una vez por operación comercial.
+- Debe persistirse junto con esa operación.
+- Debe reutilizarse en un reintento de la misma operación.
 
-Si se vuelve a enviar la misma referencia para la misma empresa, la API devuelve el comprobante existente y evita duplicados.
+Si se vuelve a enviar la misma `referencia_externa` para la misma empresa, la API devuelve el comprobante existente y evita duplicados.
 
 ## Seguridad
 
-Nunca publiques tokens reales en GitHub.
+El Bearer Token pertenece al backend integrador. No debe exponerse en:
 
-No utilices el token directamente desde:
+- frontend;
+- aplicaciones móviles;
+- repositorios públicos;
+- capturas de pantalla;
+- logs;
+- código cliente ejecutado en el navegador.
 
-- JavaScript ejecutado en el navegador
-- Aplicaciones móviles
-- Repositorios públicos
-- Código frontend
-
-Las solicitudes deben realizarse desde un backend seguro.
+Guardá las credenciales en variables de entorno o en un gestor seguro de secretos. Las solicitudes a la API deben salir siempre desde un backend confiable.
 
 ## Ambientes
 
-Los tokens pueden estar asociados a:
+### Ambiente de pruebas
 
-- Pruebas
-- Producción
+Permite validar la integración antes de operar fiscalmente. Los comprobantes generados en pruebas no tienen validez fiscal.
 
-Los comprobantes generados en pruebas no tienen validez fiscal.
+### Ambiente de producción
 
-## Documentación completa
+Permite emitir comprobantes fiscales reales. Requiere la configuración fiscal completa del contribuyente, incluyendo su habilitación operativa en ARCA.
 
-https://api.sistemas360.ar/documentacion-api
+## Enlaces oficiales
+
+- API y panel: [api.sistemas360.ar](https://api.sistemas360.ar)
+- Documentación oficial: [api.sistemas360.ar/documentacion-api](https://api.sistemas360.ar/documentacion-api)
+- Estado del servicio: [api.sistemas360.ar/estado](https://api.sistemas360.ar/estado)
+- Organización GitHub: [github.com/Sistemas-360](https://github.com/Sistemas-360)
+- Soporte: `soporte@sistemas360.ar`
 
 ## Licencia
 

@@ -1,12 +1,12 @@
-# Facturación electrónica ARCA con Java y Spring Boot
+# API de facturación electrónica ARCA con Java y Spring Boot
 
-Ejemplo oficial para consumir la API REST de facturación electrónica ARCA de Sistemas 360 desde Java y Spring Boot.
+Implementación de referencia para consumir la API REST de facturación electrónica desde un backend Java con Spring Boot.
 
 ## Requisitos
 
-- Java 17 o superior
-- Maven 3.9 o superior
-- Token de pruebas o producción de Sistemas 360
+- Java 17 o superior.
+- Maven 3.9 o superior.
+- Bearer Token de ambiente de pruebas o ambiente de producción.
 
 ## Instalación
 
@@ -40,6 +40,15 @@ $env:SISTEMAS360_BASE_URL="https://api.sistemas360.ar"
 $env:SISTEMAS360_TOKEN="TU_TOKEN"
 ```
 
+## Operaciones incluidas
+
+| Acción | Endpoint oficial | Comando |
+|---|---|---|
+| Ping | `GET /api/ping` | `SISTEMAS360_ACTION=ping mvn spring-boot:run` |
+| Crear comprobante | `POST /api/comprobantes` | `SISTEMAS360_ACTION=crear mvn spring-boot:run` |
+| Consultar comprobante | `GET /api/comprobantes/{id}` | `SISTEMAS360_ACTION=consultar` + `SISTEMAS360_COMPROBANTE_ID=151` |
+| Descargar PDF A4 | `GET /api/comprobantes/{id}/imprimir-a4` | `SISTEMAS360_ACTION=descargar-pdf` + `SISTEMAS360_COMPROBANTE_ID=151` |
+
 ## Validar conexión
 
 Linux o macOS:
@@ -72,9 +81,9 @@ mvn spring-boot:run
 
 El ejemplo genera automáticamente:
 
-- La fecha actual.
-- Una `referencia_externa` única.
-- Una Factura B de ejemplo.
+- la fecha actual;
+- una `referencia_externa` única de ejemplo;
+- una Factura B de referencia.
 
 ## Consultar un comprobante
 
@@ -114,23 +123,27 @@ $env:SISTEMAS360_COMPROBANTE_ID="151"
 mvn spring-boot:run
 ```
 
-El archivo se guardará como:
+El archivo se guarda como `comprobante-151.pdf`.
 
-```
-comprobante-151.pdf
-```
+## Idempotencia
+
+`referencia_externa` identifica una operación única. En este ejemplo se genera automáticamente para simplificar la ejecución manual, pero en una integración real debe generarla y persistirla tu backend integrador.
 
 ## Seguridad
 
-No expongas el token en:
-
-- Código frontend.
-- Aplicaciones móviles.
-- Repositorios públicos.
-- Archivos versionados.
+El token pertenece al backend. No lo expongas en frontend, aplicaciones móviles, repositorios públicos ni archivos versionados.
 
 Las solicitudes deben realizarse desde un backend seguro.
 
+## Ambientes
+
+- `Ambiente de pruebas`: permite validar la integración antes de operar fiscalmente. Los comprobantes generados no tienen validez fiscal.
+- `Ambiente de producción`: permite emitir comprobantes fiscales reales y requiere la configuración fiscal completa del contribuyente.
+
+## Alcance del ejemplo
+
+Este ejemplo cubre ping, creación, consulta y descarga de PDF A4. Es un punto de partida para un backend integrador con Spring Boot. Los casos avanzados están en la documentación oficial.
+
 ## Documentación oficial
 
-https://api.sistemas360.ar/documentacion-api
+[api.sistemas360.ar/documentacion-api](https://api.sistemas360.ar/documentacion-api)

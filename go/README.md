@@ -1,61 +1,57 @@
-# Facturación electrónica ARCA con Go
+# API de facturación electrónica ARCA con Go
 
-Ejemplo oficial para integrar una aplicación Go con la facturación electrónica de ARCA mediante la API REST de Sistemas 360.
-
-La aplicación consume la API REST de Sistemas 360. La plataforma utiliza la configuración fiscal vinculada al token para gestionar la emisión electrónica y la autorización correspondiente mediante los servicios de ARCA.
+Implementación de referencia para integrar un backend Go con la API REST de facturación electrónica.
 
 ## Descripción
 
-Este ejemplo es una aplicación de consola en Go que permite validar la conexión, emitir comprobantes electrónicos autorizados por ARCA, consultar comprobantes existentes y descargar el PDF A4, integrando directamente con los endpoints oficiales de la API REST de facturación electrónica de Sistemas 360. Es un punto de partida adecuado para integrar un ERP, una plataforma SaaS, un sistema administrativo, un backend empresarial, un microservicio o un proceso interno con la emisión fiscal.
+Este ejemplo de consola permite validar la conexión, crear comprobantes electrónicos, consultar comprobantes existentes y descargar el PDF A4 usando los endpoints oficiales de la API.
+
+Es un punto de partida para ERP, SaaS, sistemas administrativos, workers, microservicios o cualquier backend integrador que necesite emitir comprobantes electrónicos autorizados por ARCA.
 
 ## Funcionalidades
 
-- Validación de conexión y autenticación (`ping`).
+- Validación de conexión y autenticación con `ping`.
 - Creación de una Factura B con estructura completa de comprobante.
 - Consulta de un comprobante por ID.
 - Descarga segura del PDF A4.
 - Autenticación mediante Bearer Token.
 - Idempotencia mediante `referencia_externa`.
-- Manejo de errores HTTP claro, con el código y el mensaje recibido.
+- Manejo claro de errores HTTP.
 - Timeout configurado en el cliente HTTP.
 - Pruebas automatizadas con `httptest.Server`.
 
 ## Requisitos
 
 - Go 1.21 o superior.
-- Un token vinculado al contribuyente y al ambiente correspondiente (pruebas o producción).
+- Bearer Token de ambiente de pruebas o ambiente de producción.
 
-No se utilizan dependencias externas: el ejemplo está construido exclusivamente con la biblioteca estándar de Go (`net/http`, `encoding/json`, `context`, `os`, `time`, `io`, `fmt`, `errors`, `strconv`, `path/filepath`).
+No se utilizan dependencias externas.
 
 ## Estructura
 
 ```text
 go/
-├── README.md
-├── go.mod
-├── cmd/
-│   └── facturacion/
-│       └── main.go
-└── internal/
-    ├── client/
-    │   ├── client.go
-    │   └── client_test.go
-    └── models/
-        └── comprobante.go
+|-- README.md
+|-- go.mod
+|-- cmd/
+|   `-- facturacion/
+|       `-- main.go
+`-- internal/
+    |-- client/
+    |   |-- client.go
+    |   `-- client_test.go
+    `-- models/
+        `-- comprobante.go
 ```
-
-- `cmd/facturacion`: aplicación de consola (punto de entrada, comandos y validación de argumentos).
-- `internal/client`: cliente HTTP reutilizable para consumir la API de Sistemas 360.
-- `internal/models`: estructuras tipadas para el cuerpo de las solicitudes.
 
 ## Variables de entorno
 
 | Variable | Obligatoria | Valor predeterminado |
 |---|---|---|
-| `SISTEMAS360_TOKEN` | Sí | — |
+| `SISTEMAS360_TOKEN` | Sí | Sin valor |
 | `SISTEMAS360_BASE_URL` | No | `https://api.sistemas360.ar` |
 
-Si `SISTEMAS360_TOKEN` no está configurado, la aplicación muestra un error claro, finaliza con un código de salida distinto de cero y no realiza ninguna solicitud.
+Si `SISTEMAS360_TOKEN` no está configurado, la aplicación finaliza con error sin realizar ninguna solicitud.
 
 ### Configuración en Linux o macOS
 
@@ -78,7 +74,14 @@ cd go
 go build ./...
 ```
 
-También puede ejecutarse directamente con `go run` sin un paso de compilación previo, como se muestra en los comandos siguientes.
+## Comandos disponibles
+
+| Comando | Endpoint oficial | Descripción |
+|---|---|---|
+| `go run ./cmd/facturacion ping` | `GET /api/ping` | Valida conexión, token y ambiente |
+| `go run ./cmd/facturacion crear` | `POST /api/comprobantes` | Crea una Factura B de ejemplo |
+| `go run ./cmd/facturacion consultar 151` | `GET /api/comprobantes/{id}` | Consulta un comprobante |
+| `go run ./cmd/facturacion descargar-pdf 151` | `GET /api/comprobantes/{id}/imprimir-a4` | Descarga el PDF A4 |
 
 ## Validar la conexión
 
@@ -86,42 +89,17 @@ También puede ejecutarse directamente con `go run` sin un paso de compilación 
 go run ./cmd/facturacion ping
 ```
 
-Realiza:
-
-```text
-GET /api/ping
-```
-
-con los encabezados:
-
-```text
-Authorization: Bearer TU_TOKEN
-Accept: application/json
-```
-
-y muestra el JSON recibido con formato legible.
-
 ## Crear una Factura B
 
 ```bash
 go run ./cmd/facturacion crear
 ```
 
-Realiza:
+El comando genera automáticamente:
 
-```text
-POST /api/comprobantes
-```
-
-con los encabezados:
-
-```text
-Authorization: Bearer TU_TOKEN
-Accept: application/json
-Content-Type: application/json
-```
-
-El comando genera automáticamente la fecha actual (formato `YYYY-MM-DD`) y una `referencia_externa` de ejemplo para facilitar la ejecución manual. El cliente HTTP no realiza cálculos ocultos: la solicitud se envía con todos los valores explícitos, tal como se reciben.
+- la fecha actual;
+- una `referencia_externa` única de ejemplo;
+- una Factura B de referencia.
 
 ## Consultar un comprobante
 
@@ -129,13 +107,7 @@ El comando genera automáticamente la fecha actual (formato `YYYY-MM-DD`) y una 
 go run ./cmd/facturacion consultar 151
 ```
 
-Realiza:
-
-```text
-GET /api/comprobantes/151
-```
-
-Reemplazá `151` por el ID real del comprobante. El comando valida que el ID esté presente, sea numérico y mayor que cero, y muestra el JSON completo recibido en la respuesta.
+Reemplazá `151` por el ID real del comprobante.
 
 ## Descargar el PDF A4
 
@@ -143,19 +115,7 @@ Reemplazá `151` por el ID real del comprobante. El comando valida que el ID est
 go run ./cmd/facturacion descargar-pdf 151
 ```
 
-Realiza:
-
-```text
-GET /api/comprobantes/151/imprimir-a4
-```
-
-con el encabezado:
-
-```text
-Accept: application/pdf
-```
-
-El archivo se guarda como `comprobante-151.pdf`. La descarga se implementa de forma segura: se solicita el PDF, se valida el código HTTP y el `Content-Type` de la respuesta, se escribe en un archivo temporal, se cierra correctamente y recién entonces se renombra al nombre definitivo. Si ocurre un error en cualquier paso, el archivo temporal se elimina y no queda ningún archivo parcial.
+El archivo se guarda como `comprobante-151.pdf`.
 
 ## Estructura JSON
 
@@ -187,47 +147,31 @@ El comando `crear` envía una estructura equivalente a:
 }
 ```
 
-## `referencia_externa`
+## Idempotencia
 
-En una integración real, `referencia_externa`:
+`referencia_externa` identifica una operación única.
 
-- la genera el ERP, SaaS o sistema integrador, no el cliente HTTP;
-- representa una operación comercial única;
-- normalmente corresponde al ID de una venta, un pedido o una transacción;
-- debe persistirse junto con esa operación;
-- debe reutilizarse al reintentar la misma operación, sin generarse de nuevo en cada intento;
-- permite que la API evite crear comprobantes duplicados ante reintentos.
+- Debe generarla el backend integrador.
+- Debe persistirse junto con la operación comercial.
+- Debe reutilizarse cuando se repite la misma operación.
+
+En este ejemplo se genera automáticamente solo para facilitar la prueba manual.
 
 ## Manejo de errores
 
-Ante una respuesta HTTP no exitosa, el cliente:
+Ante una respuesta HTTP no exitosa, el cliente conserva el código HTTP y el mensaje devuelto por la API, sin asumir una única estructura de error.
 
-- lee el cuerpo de la respuesta con un límite razonable;
-- conserva el código HTTP recibido;
-- muestra el mensaje devuelto por la API, sea JSON o texto plano;
-- no asume una única estructura de error.
+También valida localmente:
 
-Formato del mensaje:
-
-```text
-API respondió HTTP 422: ...
-```
-
-La aplicación también valida localmente, antes de realizar cualquier solicitud: comando inexistente, ID de comprobante faltante, ID no numérico, ID menor o igual a cero y token faltante. Los errores de red y los timeouts se reportan con un mensaje claro.
+- comando inexistente;
+- ID faltante;
+- ID no numérico;
+- ID menor o igual a cero;
+- token faltante.
 
 ## Seguridad
 
-El token debe permanecer en un backend seguro y cargarse únicamente desde variables de entorno. No debe exponerse en:
-
-- frontend;
-- aplicaciones móviles;
-- repositorios;
-- archivos versionados;
-- capturas de pantalla;
-- logs;
-- respuestas de error.
-
-El ejemplo nunca muestra el token ni registra el encabezado `Authorization`.
+El token pertenece al backend y debe cargarse desde variables de entorno. No debe exponerse en frontend, aplicaciones móviles, repositorios, logs ni respuestas de error.
 
 ## Pruebas automatizadas
 
@@ -235,22 +179,17 @@ El ejemplo nunca muestra el token ni registra el encabezado `Authorization`.
 go test ./...
 ```
 
-Las pruebas usan `httptest.Server` (biblioteca estándar) y cubren, entre otros casos: el encabezado `Authorization` con Bearer Token, el encabezado `Accept`, el encabezado `Content-Type` al crear un comprobante, un `ping` exitoso, la creación de un comprobante y el JSON enviado, la consulta por ID, la descarga del PDF y el nombre del archivo generado, respuestas de error en formato JSON y en texto plano, códigos HTTP no exitosos, un `Content-Type` inválido en la descarga del PDF y la limpieza del archivo temporal cuando la descarga falla.
+Las pruebas cubren autenticación Bearer, encabezados HTTP, creación de comprobantes, consulta por ID, descarga de PDF A4 y distintos escenarios de error.
 
-## Ambientes de operación
+## Ambientes
 
-La API permite trabajar con tokens asociados a un ambiente de pruebas o producción.
+- `Ambiente de pruebas`: permite validar la integración antes de operar fiscalmente. Los comprobantes generados no tienen validez fiscal.
+- `Ambiente de producción`: permite emitir comprobantes fiscales reales y requiere la configuración fiscal completa del contribuyente.
 
-El ambiente de pruebas se utiliza para validar autenticación, solicitudes, respuestas, reglas de integración, idempotencia y descarga de documentos, antes de habilitar la operación productiva.
+## Alcance del ejemplo
 
-El ambiente de producción utiliza la configuración fiscal completa del contribuyente, incluyendo CUIT, punto de venta, certificado digital, clave privada y la autorización correspondiente del servicio en ARCA.
-
-La configuración fiscal de cada ambiente se administra desde el panel de Sistemas 360.
+Este ejemplo cubre ping, creación, consulta y descarga de PDF A4. Es un punto de partida para un backend integrador. Los casos avanzados están en la documentación oficial.
 
 ## Documentación oficial
 
-https://api.sistemas360.ar/documentacion-api
-
-## Repositorio oficial
-
-https://github.com/Sistemas-360/facturacion-electronica-arca-examples
+[api.sistemas360.ar/documentacion-api](https://api.sistemas360.ar/documentacion-api)

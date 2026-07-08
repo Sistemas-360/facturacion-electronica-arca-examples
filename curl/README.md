@@ -1,12 +1,12 @@
-# Facturación electrónica ARCA con cURL
+# API de facturación electrónica ARCA con cURL
 
-Ejemplos oficiales para consumir la API REST de facturación electrónica ARCA de Sistemas 360 usando cURL.
+Scripts de referencia para consumir la API REST de facturación electrónica desde cURL.
 
 ## Requisitos
 
 - Bash, Git Bash, WSL, Linux o macOS.
 - cURL instalado.
-- Token de pruebas o producción de Sistemas 360.
+- Bearer Token de ambiente de pruebas o ambiente de producción.
 
 ## Configuración
 
@@ -29,13 +29,22 @@ Opcionalmente, configurá la URL base:
 export SISTEMAS360_BASE_URL="https://api.sistemas360.ar"
 ```
 
-## Dar permisos de ejecución
+## Uso inicial
 
 Ejecutá una sola vez:
 
 ```bash
 chmod +x *.sh
 ```
+
+## Operaciones incluidas
+
+| Script | Endpoint oficial | Descripción |
+|---|---|---|
+| [ping.sh](./ping.sh) | `GET /api/ping` | Valida conexión, token y ambiente |
+| [crear-factura-b.sh](./crear-factura-b.sh) | `POST /api/comprobantes` | Crea una Factura B de ejemplo |
+| [consultar-comprobante.sh](./consultar-comprobante.sh) | `GET /api/comprobantes/{id}` | Consulta un comprobante existente |
+| [descargar-pdf.sh](./descargar-pdf.sh) | `GET /api/comprobantes/{id}/imprimir-a4` | Descarga el PDF A4 |
 
 ## Validar conexión
 
@@ -49,11 +58,11 @@ chmod +x *.sh
 ./crear-factura-b.sh
 ```
 
-Cada ejecución genera automáticamente:
+El script genera automáticamente:
 
-- La fecha actual.
-- Una `referencia_externa` única.
-- Una Factura B de ejemplo.
+- la fecha actual;
+- una `referencia_externa` única de ejemplo;
+- una Factura B de referencia.
 
 ## Consultar un comprobante
 
@@ -69,27 +78,27 @@ Reemplazá `59` por el ID real del comprobante.
 ./descargar-pdf.sh 59
 ```
 
-El archivo se guardará como:
+El archivo se guarda como `comprobante-59.pdf`.
 
-```
-comprobante-59.pdf
-```
+## Idempotencia
 
-## Scripts disponibles
-
-| Script | Endpoint | Descripción |
-|---|---|---|
-| [ping.sh](./ping.sh) | `GET /api/ping` | Valida el token y la conexión |
-| [crear-factura-b.sh](./crear-factura-b.sh) | `POST /api/comprobantes` | Crea una Factura B |
-| [consultar-comprobante.sh](./consultar-comprobante.sh) | `GET /api/comprobantes/{id}` | Consulta un comprobante |
-| [descargar-pdf.sh](./descargar-pdf.sh) | `GET /api/comprobantes/{id}/imprimir-a4` | Descarga el PDF A4 |
+`referencia_externa` identifica una operación única. En una integración real debe generarla y persistirla tu backend integrador, no un frontend.
 
 ## Seguridad
 
-Nunca publiques tokens reales en GitHub.
+El token pertenece al backend. No lo expongas en frontend, aplicaciones móviles, repositorios públicos ni scripts compartidos con credenciales reales.
 
-Los scripts leen el token desde una variable de entorno y no contienen credenciales.
+Los scripts leen el token desde variables de entorno y no incluyen secretos embebidos.
+
+## Ambientes
+
+- `Ambiente de pruebas`: permite validar autenticación y flujo de integración. Los comprobantes generados no tienen validez fiscal.
+- `Ambiente de producción`: permite emitir comprobantes fiscales reales y requiere la configuración fiscal completa del contribuyente.
+
+## Alcance del ejemplo
+
+Este ejemplo cubre ping, creación, consulta y descarga de PDF A4. Los casos avanzados, como reintento técnico o descarga de ticket, están documentados en la documentación oficial.
 
 ## Documentación oficial
 
-https://api.sistemas360.ar/documentacion-api
+[api.sistemas360.ar/documentacion-api](https://api.sistemas360.ar/documentacion-api)
